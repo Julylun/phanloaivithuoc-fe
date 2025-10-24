@@ -1,7 +1,8 @@
 import SplitLine from "../SplitLine";
 import InformationTitle from "./InformationTitle";
-import StatisticBar from "./StatisticBar";
-import StatusBar from "./StatusBar";
+import ProductStatus, { ProductStatusEnum } from "./ProductStatus";
+import StatisticBar, { StatisticBarColor } from "./StatisticBar";
+import StatusBar, { StatusBarColor } from "./StatusBar";
 
 export default function InformationView() {
     return (
@@ -10,26 +11,26 @@ export default function InformationView() {
 
         <div className="flex-1 flex flex-col items-center pt-8 gap-8 overflow-y-auto">
           <div className="h-fit gap-3 w-full flex flex-col items-center">
-            <StatusBar/>
-            <StatusBar/>
-            <StatusBar/>
-            <StatusBar/>
+            <StatusBar name={"Camera: "} color={StatusBarColor.GREEN}/>
+            <StatusBar name={"PLC: "} color={StatusBarColor.GREEN}/>
+            <StatusBar name={"Conveyor: "} color={StatusBarColor.RED}/>
+            <StatusBar name={"Sensor 1: "} color={StatusBarColor.GREEN}/>
+            <StatusBar name={"Sensor 2: "} color={StatusBarColor.GREEN}/>
           </div>
 
           <SplitLine/>
 
           <div className="flex flex-row flex-wrap gap-5 px-3 justify-center w-full">
-            <StatisticBar/>
-            <StatisticBar/>
-            <StatisticBar/>
+            <StatisticBar name={'Normal tablet strip'} value={100} color={StatisticBarColor.GREEN}/>
+            <StatisticBar name={'Missing pills'} value={100} color={StatisticBarColor.YELLOW}/>
+            <StatisticBar name={'Broken pills'} value={100} color={StatisticBarColor.RED}/>
+            <SplitLine/>
+            <StatisticBar name={'Total tablet strip'} value={300} color={StatisticBarColor.SECRET}/>
           </div>
 
-          <SplitLine/>
+          {/* <SplitLine/> */}
 
-          <div className="flex flex-row gap-2 justify-center">
-            <p className="text-black font-extrabold">Product Status: </p>
-            <p className="text-red-500 font-extrabold">Broken</p>
-          </div>
+          <ProductStatus status={ProductStatusEnum.NORMAL}/>
 
         </div>
     </div>

@@ -1,3 +1,6 @@
+"use client";
+
+
 import Footer from "./components/footer/_Footer";
 import Header from "./components/header/_Header";
 import InformationView from "./components/informationView/InformationView";
