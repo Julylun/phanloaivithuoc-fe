@@ -24,3 +24,12 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@theme {
+  --color-color1: oklch(0.9622 0.0093 106.57);
+  --color-color2: oklch(0.9499 0.0146 102.46);
+  --color-color3: oklch(0.9329 0.0053 106.5);
+
+  --color-splitline: oklch(0.8863 0.0099 17.34);
+  --color-button-start: #9CFF6E;
+}
