@@ -1,78 +1,84 @@
-import { useEffect, useRef } from "react";
-import CameraView from "./CameraView";
+import { useEffect, useRef, useState } from "react";
+import CameraView, { CameraViewRef } from "./CameraView";
+
+interface StreamData {
+  image: string,
+//   rawImage: string; // base64 cho real-time (không detections)
+//   detectedImage: string; // base64 cho detected (với bbox)
+  detections: any[]; // Optional: detections data nếu cần overlay JS
+}
 
 export default function CameraContainer() {
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const socketRef = useRef(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const realtimeVideoRef = useRef<HTMLVideoElement>(null);
-    const detectedVideoRef = useRef<HTMLVideoElement>(null);
+const realtimeRef = useRef<CameraViewRef>(null);
+    const detectedRef = useRef<CameraViewRef>(null);
+    const [ws, setWs] = useState<WebSocket | null>(null);
+    const [isConnected, setIsConnected] = useState(false);
+    const [status, setStatus] = useState("Đang kết nối..."); // Bắt đầu với status kết nối
 
+    const wsUrl = "ws://127.0.0.1:8000/ws/video-stream"; // Khớp endpoint backend
 
+    const connect = () => {
+    const socket = new WebSocket(wsUrl);
+    setWs(socket);
 
-    useEffect(() => {
-        
-        const setupCameraStream = async () => {
-            const pc = new RTCPeerConnection({
-                iceServers: [{ urls: "stun:stun.l.google.com:19302" }], // Thêm STUN server
-            })
-            // Thu thập ICE candidates
-            pc.onicecandidate = (event) => {
-            if (event.candidate) {
-                console.log("ICE candidate:", event.candidate);
-                // Có thể gửi candidate này đến server nếu cần
-            }};
+    socket.onopen = () => {
+        setStatus("Kết nối thành công! Đang stream...");
+        setIsConnected(true);
+    };
 
-            pc.onconnectionstatechange = () => {
-            console.log("WebRTC connection state:", pc.connectionState);
-            if (pc.connectionState === "failed" || pc.connectionState === "closed") {
-                console.error("WebRTC connection failed or closed");
-            }};
-
-            const stream = await navigator.mediaDevices.getUserMedia({ video:{
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-                frameRate: { ideal: 15, max: 15 },
-            }})
-
-            if (realtimeVideoRef.current) realtimeVideoRef.current.srcObject = stream
-            if (detectedVideoRef.current) detectedVideoRef.current.srcObject = stream
-
-            stream.getVideoTracks().forEach((track) => {
-                console.log("Video track settings:", track.getSettings());
-                pc.addTrack(track, stream);
-                track.onended = () => {
-                    console.log("Video track ended");
-            };});
-
-            const offer = await pc.createOffer()
-            const sdp = offer.sdp!!.replace(
-                /a=fmtp:(\d+) .*/,
-                `a=fmtp:$1 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1`
-            );
-            await pc.setLocalDescription(offer)
-
-            const response = await fetch("http://localhost:8000/webrtc/offer", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ sdp: sdp, type: offer.type }),
-            });
-            const answer = await response.json()
-            console.log("Answer from server:", answer);
-            await pc.setRemoteDescription(answer)
+    socket.onmessage = (event) => {
+        try {
+        const data: StreamData = JSON.parse(event.data);
+        if (!data.image) {
+          console.warn("No image in payload:", data);
+          return; // Skip nếu không có image
         }
-        setupCameraStream()
+        // Update hai view
+        if (realtimeRef.current) {
+            realtimeRef.current.updateImage(data.image);
+        }
+        if (detectedRef.current) {
+            detectedRef.current.updateImage(data.image);
+        }
+        console.log(`Received frame with ${data.detections.length} detections`);
+        } catch (err) {
+        console.error("Lỗi parse message:", err);
+        }
+    };
 
+    socket.onclose = () => {
+        setStatus("Đã ngắt kết nối.");
+        setIsConnected(false);
+    };
 
-        const canvas = document.createElement("canvas");
-        canvasRef.current = canvas;
-    });
+    socket.onerror = (err) => {
+        setStatus("Lỗi kết nối: "  + err || "Unknown error");
+        console.error(err);
+    };
+    };
 
+    const disconnect = () => {
+    if (ws) {
+        ws.close();
+        setWs(null);
+    }
+    setStatus("Đã ngắt.");
+    setIsConnected(false);
+    };
 
+    // Tự động connect khi component mount
+    useEffect(() => {
+    connect();
+
+    // Cleanup khi unmount hoặc reconnect nếu cần
+    return () => {
+        if (ws) ws.close();
+    };
+    }, []); // [] để chạy chỉ một lần khi mount
     return (
         <div className="flex-1 flex flex-row justify-center items-center gap-4 md:gap-2 md:flex-col lg:gap-2 xl:flex-row">
-            <CameraView screenName={"Real-time camera"} ref={realtimeVideoRef}/>
-            <CameraView screenName={"Dectected camera"} ref={detectedVideoRef}/>
+            <CameraView screenName={"Real-time camera"} ref={realtimeRef}/>
+            <CameraView screenName={"Dectected camera"} ref={detectedRef}/>
         </div>
     );
 }
