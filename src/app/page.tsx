@@ -6,7 +6,7 @@ import Header from "./components/header/_Header";
 import InformationView from "./components/informationView/InformationView";
 import ButtonContainer from "./components/screen/ButtonContainer";
 import CameraContainer from "./components/screen/CameraContainer";
-import CameraView from "./components/screen/CameraView";
+import CameraViewStream from "./components/screen/CameraViewStream";
 
 export default function Home() { //component
   return (

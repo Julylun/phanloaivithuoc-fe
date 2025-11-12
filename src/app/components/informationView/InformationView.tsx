@@ -21,16 +21,16 @@ export default function InformationView() {
           <SplitLine/>
 
           <div className="flex flex-row flex-wrap gap-5 px-3 justify-center w-full">
-            <StatisticBar name={'Normal tablet strip'} value={100} color={StatisticBarColor.GREEN}/>
-            <StatisticBar name={'Missing pills'} value={100} color={StatisticBarColor.YELLOW}/>
-            <StatisticBar name={'Broken pills'} value={100} color={StatisticBarColor.RED}/>
+            <StatisticBar name={'Normal tablet strips'} value={100} color={StatisticBarColor.GREEN}/>
+            {/* <StatisticBar name={'Missing pills'} value={100} color={StatisticBarColor.YELLOW}/> */}
+            <StatisticBar name={'Error tablet strips'} value={100} color={StatisticBarColor.RED}/>
             <SplitLine/>
-            <StatisticBar name={'Total tablet strip'} value={300} color={StatisticBarColor.SECRET}/>
+            <StatisticBar name={'Total tablet strips'} value={200} color={StatisticBarColor.SECRET}/>
           </div>
 
           {/* <SplitLine/> */}
 
-          <ProductStatus status={ProductStatusEnum.NORMAL}/>
+          <ProductStatus status={ProductStatusEnum.BROKEN_MISSING_CORNER}/>
 
         </div>
     </div>
